@@ -1,22 +1,24 @@
 # ZClean
 
-Ref papers:
-
-- [ZeroCash paper](http://zerocash-project.org/media/pdf/zerocash-oakland2014.pdf)
-
-## Concept
+This is the repository for ZClean, a hackaton project run at (twitter) @BinaryDistrict ZeroKnowledgeWorkshop(17/06/19 to 21/06/19)
 
 ### Goal
 
 Making a very rough reimplementation of zero-cash like, adding a feature that coins are tainted (with a bit), and that while transferring in zero-knowledge we also prove that the taint is preserved. We only do shielded transactions, and everything has value 1.
 The state of the blockchain is a merkle tree containing commitements and a list of nullifier.
 
+Ref papers:
+
+- [ZeroCash paper](http://zerocash-project.org/media/pdf/zerocash-oakland2014.pdf)
+
+## Concept
+
 ### Components to the blockchain peer + wallet:
 
 - JSON API
-- MT server
-- Snarky Circuit
-- the blockchain, on a Redis list
+- Merkle Tree server
+- Snarky Circuit to generate the proofs
+- A Block
 - a wallet with the secrets necessary for the peer to spend the notes
 - a config with the port list
 
@@ -31,22 +33,21 @@ The state of the blockchain is a merkle tree containing commitements and a list 
 - if it's accepted, the blockchain is now one block larger
 
 
-### Rules
+### Design Principle
 
-- start with a mktree, containing commitement of the type H(r,b).
 - utxo with 1 in 1 out, no values(or v = 1)
 - to transfer, share a zk with the person you are transferring proving that you know the preimage
-- the nulifier is stored in a dead drop style(file, for now, could be anything, as long as it has the potential to be replaced by an anonymous system)
 
 
-### Block Content:
+### Content of a Block:
 
 - root
 - nullifier
+- id
+- parentId
+- parentHash
 - new cm
-- proof1: nf is computed correctly
-- proof2: old cm existed in the tree corresponding to root
-- proof3: the flag is consistent (b_old = b_new)
+- proof the the nullifier is computed correctl,that old commitment existed in the merkle tree, that the new commitment is well formed, that the flag is consistent (b_old = b_new)
 
 ### Prover file content:
 Prover file `transfer_secrets` takes a lines of unlabelled values (some are tuples):
@@ -112,27 +113,37 @@ Error: Signature mismatch:
 ```
 Don't worry - run it again.
 
+## Transport layer
+
+The merkle tree and snarky circuit interface using a basic blockchain which is:
+- Buit with Node.js
+- Uses Redis as a datastore
+- Uses the [buslane](https://www.npmjs.com/package/buslane) library for Wallet to Peer and Peer to Peer communication.
+
+WARNING: as of time of writing, each component work separatly, but are not integrated
+
 ### Requirements:
 
-- Docker(to run the blockchain datastore. redis ATM)
+- Docker and Docker Compose(to run the blockchain redis instances)
 - Ocaml via opam, switched to 4.07.1
-- Snarky installed (good luck with that :D)
-- node.js 12 to run the client and the peer
+- Snarky installed ( good luck with that :D )
+- node.js v12.*.* to run the client and the peer
 
-### Starting a demo env
+### Starting the environment
 
-- run `./install.sh`
-- `docker-compose up` to start the redis instances
-- open 6 term windows
-- in 3 of them, run `./startPeer.sh 0, 1 and 2`
-- in 3 of them, run `./startWallet.sh 0, 1 and 2`
-- in 1 of them, run `./startExplorer.sh` for the block explorer
+- run `./install.sh` to install the node dependencies
+- `docker-compose up -d` to start the redis instances
+- in 3 of them, run `./startPeer.sh 0, 1 and 2` to run the peers
+- in 3 of them, run `./startWallet.sh 0, 1 and 2` to start the wallets
+- in 1 of them, run `./startExplorer.sh` to start the block explorer
 
-Usage of the wallet:
+### Usage of the wallet:
 
-- to transfer a coin, type `t 0/1` in a wallet to transfer one coin to a peer
-- to get the balance, type `b`
-- to check the status, type `s`
+- To transfer a coin, type `t 0/1` in a wallet to transfer one coin to a peer
+- To get the balance, type `b`
+- To check the status or the peer your wallet is talking to, type `s`
+
+- To reset the state, run `docker-compose down -v`
 
 
 ...
