@@ -1,6 +1,6 @@
 # ZClean
 
-This is the repository for ZClean, a hackaton project run at (twitter) @BinaryDistrict ZeroKnowledgeWorkshop(17/06/19 to 21/06/19)
+This is the repository for ZClean, a hackaton project run at [@BinaryDistrict](https://twitter.com/BinaryDistrict) ZeroKnowledgeWorkshop(17/06/19 to 21/06/19).
 
 ### Goal
 
